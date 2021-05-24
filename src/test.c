@@ -13,18 +13,6 @@ size_t ERROR = 0;
     } \
   } while(0)
 
-
-bool
-eq_vec3(struct vec3 a, struct vec3 b)
-{
-  for (size_t ii=0; ii<3; ii++) {
-    if (a.v[ii] != b.v[ii]) {
-      return false;
-    }
-  }
-  return true;
-}
-
 void
 test_obj_init(void)
 {
@@ -66,7 +54,7 @@ test_obj_translate(void)
   struct vec3 pos = {{{0, 0, 1}}};
   mad_obj_translate(index, pos);
   ASSERT(
-    eq_vec3(mad_obj_pos(index), pos),
+    vec3_eq(mad_obj_pos(index), pos),
     "%s", "Object not at 0,0,1 after translation."
   );
 }
