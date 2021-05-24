@@ -15,7 +15,7 @@ size_t TESTS_TOTAL = 0;
   } \
 } while(0)
 
-#define MAD_TEST(test_function) do { \
+#define MAD_TEST_RUN(test_function) do { \
   TESTS_TOTAL++; \
   if (test_function() == EXIT_FAILURE){\
     FAILED++;\
@@ -75,9 +75,9 @@ int
 main(void)
 {
 
-  MAD_TEST(test_obj_init);
-  MAD_TEST(test_obj_init_multiple);
-  MAD_TEST(test_obj_translate);
+  MAD_TEST_RUN(test_obj_init);
+  MAD_TEST_RUN(test_obj_init_multiple);
+  MAD_TEST_RUN(test_obj_translate);
 
   const char * banner = "#################%s#################\n";
   printf(banner, "  TEST RESULTS   ");
