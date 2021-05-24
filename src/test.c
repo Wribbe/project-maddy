@@ -65,7 +65,10 @@ test_obj_translate(void)
   mad_obj_init(1, &index);
   struct vec3 pos = {{{0, 0, 1}}};
   mad_obj_translate(index, pos);
-  ASSERT(eq_vec3(mad_obj_pos(index), pos), "%s", "Object not at 0,0,1 after translation.");
+  ASSERT(
+    eq_vec3(mad_obj_pos(index), pos),
+    "%s", "Object not at 0,0,1 after translation."
+  );
 }
 
 int
