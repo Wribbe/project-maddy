@@ -22,13 +22,37 @@ size_t TESTS_TOTAL = 0;
   }\
 } while(0)
 
+#define LEN(x) sizeof(x)/sizeof(x[0])
+
+typedef void(cleanup_function)(size_t index);
+
+#define HANDLERS_NUM_MAX 256
+size_t handlers_first_free = 0;
+
+struct mad_cleanup_handler {
+  cleanup_function * f;
+  size_t index;
+};
+
+struct mad_cleanup_handler handlers[HANDLERS_NUM_MAX] = {0};
+
+void
+MAD_CLEANUP_PUSH(cleanup_function f, size_t index)
+{
+}
+
+void
+MAD_CLEANUP(void)
+{
+}
+
 int
 test_obj_init(void)
 {
-  size_t index = 0;
+  size_t index = 4;
   mad_obj_init(1, &index);
   MAD_ASSERT(
-    index != 0,
+    index == 0,
     "%s\n", "Initialization of object did not set returned index correctly."
   );
   return EXIT_SUCCESS;
@@ -72,17 +96,38 @@ test_obj_translate(void)
 }
 
 int
+test_create_triangle(void)
+{
+  float expected[] = {
+    -0.5f,  0.5f, 0.0f,
+    -0.5f, -0.5f, 0.0f,
+     0.5f,  0.5f, 0.0f,
+  };
+  size_t obj_index = 0;
+  mad_obj_init(1, &obj_index);
+  mad_obj_create_triangle(obj_index);
+  MAD_CLEANUP_PUSH(mad_obj_free, obj_index);
+  MAD_ASSERT(
+    floats_equals(obj_vertices(obj_index), expected, LEN(expected)),
+    "%s", "Did not get a correct triangle from 'mad_obj_create_triangle'"
+  );
+  MAD_CLEANUP();
+  return EXIT_SUCCESS;
+}
+
+int
 main(void)
 {
 
   MAD_TEST_RUN(test_obj_init);
   MAD_TEST_RUN(test_obj_init_multiple);
   MAD_TEST_RUN(test_obj_translate);
+  MAD_TEST_RUN(test_create_triangle);
 
   const char * banner = "#################%s#################\n";
   printf(banner, "  TEST RESULTS   ");
   if (FAILED) {
-    printf("  %zu/%zu of the tests fialed.\n", FAILED, TESTS_TOTAL);
+    printf("  %zu test out of %zu failed.\n", FAILED, TESTS_TOTAL);
   } else {
     printf("  All %zu tests passed without errors.\n", TESTS_TOTAL);
   }
