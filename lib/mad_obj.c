@@ -53,6 +53,12 @@ mad_obj_create_triangle(size_t index)
   if (objects[index].vertices == NULL) {
     FATAL("%s\n", "Failed to allocate memory for triangle vertices, aborting.");
   }
+  float vertices_triangle[] = {
+    -0.5f,  0.5f, 0.0f,
+    -0.5f, -0.5f, 0.0f,
+     0.5f,  0.5f, 0.0f,
+  };
+  mad_obj_set_vertices(index, vertices_triangle, sizeof(vertices_triangle));
 }
 
 float *
@@ -62,9 +68,24 @@ obj_vertices(size_t index)
 }
 
 void
-mad_obj_free(size_t index)
+mad_obj_free(void * arg)
 {
+  size_t index = *((size_t *)arg);
   if (objects[index].vertices) {
     free(objects[index].vertices);
   }
+}
+
+void
+mad_obj_set_vertices(size_t index, float * vertices, size_t size_vertices)
+{
+  if (objects[index].vertices != NULL) {
+    free(objects[index].vertices);
+    objects[index].vertices = NULL;
+  }
+  objects[index].vertices = malloc(size_vertices);
+  if (objects[index].vertices == NULL) {
+    FATAL("%s\n", "Could not allocate memory inside mad_obj_set_vertices");
+  }
+  memcpy(objects[index].vertices, vertices, size_vertices);
 }

@@ -26,6 +26,9 @@ bool
 floats_equals(float * a, float * b, size_t num_to_compare);
 
 void
-mad_obj_free(size_t index);
+mad_obj_free(void * index);
+
+void
+mad_obj_set_vertices(size_t index, float * vertices, size_t size_vertices);
 
 #endif

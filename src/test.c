@@ -4,46 +4,56 @@
 
 #include "lib/mad_obj.h"
 #include "lib/mad_vec.h"
+#include "lib/macros.h"
 
 size_t FAILED = 0;
 size_t TESTS_TOTAL = 0;
 
-#define MAD_ASSERT(f, fmt, ...) do {\
+#define ASSERT(f, fmt, ...) do {\
   if (!(f)) {\
     printf("ERROR (%s): "fmt"\n", __func__, __VA_ARGS__);\
+    CLEANUP();\
     return EXIT_FAILURE; \
   } \
 } while(0)
 
-#define MAD_TEST_RUN(test_function) do { \
+#define TEST_RUN(test_function) do { \
   TESTS_TOTAL++; \
   if (test_function() == EXIT_FAILURE){\
     FAILED++;\
   }\
 } while(0)
 
-#define LEN(x) sizeof(x)/sizeof(x[0])
-
-typedef void(cleanup_function)(size_t index);
+typedef void(cleanup_function)(void * arg);
 
 #define HANDLERS_NUM_MAX 256
 size_t handlers_first_free = 0;
 
-struct mad_cleanup_handler {
+struct cleanup_handler {
   cleanup_function * f;
-  size_t index;
+  void * arg;
 };
 
-struct mad_cleanup_handler handlers[HANDLERS_NUM_MAX] = {0};
+struct cleanup_handler cleanup_handlers[HANDLERS_NUM_MAX] = {0};
 
 void
-MAD_CLEANUP_PUSH(cleanup_function f, size_t index)
+CLEANUP_PUSH(cleanup_function f, size_t index)
 {
+  cleanup_handlers[handlers_first_free].f = f;
+  size_t * arg = malloc(sizeof(index));
+  *arg = index;
+  cleanup_handlers[handlers_first_free].arg = arg;
+  handlers_first_free++;
 }
 
 void
-MAD_CLEANUP(void)
+CLEANUP(void)
 {
+  for(;handlers_first_free > 0; handlers_first_free--) {
+    struct cleanup_handler handler = cleanup_handlers[handlers_first_free-1];
+    handler.f(handler.arg);
+    free(handler.arg);
+  }
 }
 
 int
@@ -51,7 +61,7 @@ test_obj_init(void)
 {
   size_t index = 4;
   mad_obj_init(1, &index);
-  MAD_ASSERT(
+  ASSERT(
     index == 0,
     "%s\n", "Initialization of object did not set returned index correctly."
   );
@@ -68,13 +78,13 @@ test_obj_init_multiple(void)
   mad_obj_init(num_objects, indexes);
   for (size_t ii=1; ii<num_objects; ii++) {
     size_t distance = indexes[ii] - indexes[ii-1];
-    MAD_ASSERT(
+    ASSERT(
       distance == 1,
       "Length between index %zu and %zu was not 1: %zu.",
       ii, ii-1, distance
     );
   }
-  MAD_ASSERT(
+  ASSERT(
     indexes[num_objects] == overwrite_control,
     "%s\n", "Control value overwritten at end of object index list."
   );
@@ -88,7 +98,7 @@ test_obj_translate(void)
   mad_obj_init(1, &index);
   struct vec3 pos = {{{0, 0, 1}}};
   mad_obj_translate(index, pos);
-  MAD_ASSERT(
+  ASSERT(
     vec3_eq(mad_obj_pos(index), pos),
     "%s", "Object not at 0,0,1 after translation."
   );
@@ -106,23 +116,22 @@ test_create_triangle(void)
   size_t obj_index = 0;
   mad_obj_init(1, &obj_index);
   mad_obj_create_triangle(obj_index);
-  MAD_CLEANUP_PUSH(mad_obj_free, obj_index);
-  MAD_ASSERT(
-    floats_equals(obj_vertices(obj_index), expected, LEN(expected)),
+  CLEANUP_PUSH(mad_obj_free, obj_index);
+  ASSERT(
+    floats_equals(obj_vertices(obj_index), expected, MAD_LEN(expected)),
     "%s", "Did not get a correct triangle from 'mad_obj_create_triangle'"
   );
-  MAD_CLEANUP();
+  CLEANUP();
   return EXIT_SUCCESS;
 }
 
 int
 main(void)
 {
-
-  MAD_TEST_RUN(test_obj_init);
-  MAD_TEST_RUN(test_obj_init_multiple);
-  MAD_TEST_RUN(test_obj_translate);
-  MAD_TEST_RUN(test_create_triangle);
+  TEST_RUN(test_obj_init);
+  TEST_RUN(test_obj_init_multiple);
+  TEST_RUN(test_obj_translate);
+  TEST_RUN(test_create_triangle);
 
   const char * banner = "#################%s#################\n";
   printf(banner, "  TEST RESULTS   ");
