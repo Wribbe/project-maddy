@@ -7,6 +7,14 @@
 
 #define NUM_OBJS 256
 
+struct mad_obj {
+  struct vec3 coords;
+  size_t num_vertices;
+  float * vertices;
+};
+
+extern struct mad_obj objects[NUM_OBJS];
+
 void
 mad_obj_init(size_t num_objects, size_t * ret_index);
 

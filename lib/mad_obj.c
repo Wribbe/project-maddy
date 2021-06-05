@@ -3,12 +3,6 @@
 
 size_t index_obj_first_free = 0;
 
-struct mad_obj {
-  struct vec3 coords;
-  size_t num_vertices;
-  float * vertices;
-};
-
 struct mad_obj objects[NUM_OBJS] = {0};
 
 void
