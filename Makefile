@@ -1,6 +1,6 @@
 bins := $(patsubst src/%.c,bin/%,$(wildcard src/*.c))
 FLAGS := -Wall --pedantic -I. -g
-LOCAL_LIBS := $(wildcard lib/*.c)
+LOCAL_LIBS := $(wildcard lib/*)
 
 all: ${bins}
 
